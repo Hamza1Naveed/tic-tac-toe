@@ -1,37 +1,57 @@
+const SIZE = 4;
 const cells = Array.from(document.querySelectorAll('.cell'));
 const statusEl = document.getElementById('status');
 const restartBtn = document.getElementById('restart');
 
-let board = Array(9).fill(null);
+let board = Array(SIZE * SIZE).fill(null);
 let current = 'X';
 let running = true;
 
-const wins = [
-  [0,1,2],[3,4,5],[6,7,8],
-  [0,3,6],[1,4,7],[2,5,8],
-  [0,4,8],[2,4,6]
-];
+// generate winning lines for SIZE x SIZE grid
+const wins = [];
+// rows
+for (let r = 0; r < SIZE; r++) {
+  const row = [];
+  for (let c = 0; c < SIZE; c++) row.push(r * SIZE + c);
+  wins.push(row);
+}
+// cols
+for (let c = 0; c < SIZE; c++) {
+  const col = [];
+  for (let r = 0; r < SIZE; r++) col.push(r * SIZE + c);
+  wins.push(col);
+}
+// diagonals
+const d1 = [];
+const d2 = [];
+for (let i = 0; i < SIZE; i++) {
+  d1.push(i * SIZE + i);
+  d2.push(i * SIZE + (SIZE - 1 - i));
+}
+wins.push(d1, d2);
 
-function updateStatus(text){ statusEl.textContent = text; }
+function updateStatus(text) { statusEl.textContent = text; }
 
-function checkWin(){
-  for (const [a,b,c] of wins){
-    if (board[a] && board[a] === board[b] && board[a] === board[c]) return board[a];
+function checkWin() {
+  for (const combo of wins) {
+    const first = board[combo[0]];
+    if (!first) continue;
+    if (combo.every(i => board[i] === first)) return first;
   }
   return board.every(Boolean) ? 'draw' : null;
 }
 
-function handleClick(e){
+function handleClick(e) {
   const idx = Number(e.target.dataset.index);
   if (!running || board[idx]) return;
   board[idx] = current;
   e.target.textContent = current;
   const result = checkWin();
-  if (result === 'draw'){
-    updateStatus("It's a draw");
+  if (result === 'draw') {
+    updateStatus(\"It's a draw\");
     running = false;
     cells.forEach(c => c.classList.add('disabled'));
-  } else if (result){
+  } else if (result) {
     updateStatus(`Player ${result} wins`);
     running = false;
     cells.forEach(c => c.classList.add('disabled'));
@@ -41,11 +61,11 @@ function handleClick(e){
   }
 }
 
-function restart(){
+function restart() {
   board.fill(null);
   current = 'X';
   running = true;
-  cells.forEach(c => { c.textContent=''; c.classList.remove('disabled'); });
+  cells.forEach(c => { c.textContent = ''; c.classList.remove('disabled'); });
   updateStatus(`Player ${current}'s turn`);
 }
 
